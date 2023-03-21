@@ -61,7 +61,7 @@
             prijmeni = prijmeni.Trim().ToLower();
             
             // Seradi existujici pojistene Osoby podle Prijmeni, pokud neni jiste, ze uz jsou serazene
-            if(posledniSerazeni == DateTime.MinValue || posledniSerazeni < posledniUprava)
+            if(posledniSerazeni < posledniUprava)
             {
                 pojisteneOsoby = pojisteneOsoby.OrderBy(osoba => osoba.Prijmeni).ToList();
                 posledniSerazeni = DateTime.Now;
