@@ -10,10 +10,15 @@
         /// </summary>
         private List<Osoba> pojisteneOsoby = new List<Osoba>();
 
+        /// <summary>
+        /// Datum posledni upravy polozek Listu pojisteneOsoby
+        /// </summary>
         private DateTime posledniUprava = DateTime.MinValue;
 
+        /// <summary>
+        /// Datum posledniho serazeni polozek Listu pojisteneOsoby
+        /// </summary>
         private DateTime posledniSerazeni = DateTime.MinValue;
-
 
         /// <summary>
         /// Ulozi novou osobu do seznamu pojistenych
@@ -26,6 +31,7 @@
         {
             // Z metode predanych parametru vytvori novou instanci Osoby a ulozi ji do Listu
             pojisteneOsoby.Add(new Osoba(jmeno, prijmeni, vek, telefonniCislo));
+            // Zaznamena posledni upravu Listu pojisteneOsoby do atribudu
             posledniUprava = DateTime.Now;
         }
 
@@ -40,11 +46,28 @@
         }
 
         /// <summary>
+        /// Zajisti serazeni Listu pojisteneOsoby dle Prijmeni
+        /// </summary>
+        private void SeradPojisteneOsoby()
+        {
+            // Seradi existujici pojistene Osoby podle Prijmeni, pokud neni jiste, ze uz jsou serazene
+            if (posledniSerazeni < posledniUprava)
+            {
+                pojisteneOsoby = pojisteneOsoby.OrderBy(osoba => osoba.Prijmeni).ToList();
+                // Zaznamena posledni serazeni Listu pojisteneOsoby do atribudu
+                posledniSerazeni = DateTime.Now;
+            }
+        }
+
+        /// <summary>
         /// Vypise detaily vsech pojistenych osob
         /// </summary>
         /// <returns>Pole stringu s detaily pojistenych</returns>
         public string[] VypisPojistene()
         {
+            // Overi, zda jsou Osoby v pojisteneOsoby serazene dle Prijmeni
+            SeradPojisteneOsoby();
+            // Prevede na pole stringu
             return PrevedListNaPole(pojisteneOsoby);
         }
 
@@ -59,13 +82,9 @@
             // Normalizuji predane parametry
             jmeno = jmeno.Trim().ToLower();
             prijmeni = prijmeni.Trim().ToLower();
-            
-            // Seradi existujici pojistene Osoby podle Prijmeni, pokud neni jiste, ze uz jsou serazene
-            if(posledniSerazeni < posledniUprava)
-            {
-                pojisteneOsoby = pojisteneOsoby.OrderBy(osoba => osoba.Prijmeni).ToList();
-                posledniSerazeni = DateTime.Now;
-            }
+
+            // Overi, zda jsou Osoby v pojisteneOsoby serazene dle Prijmeni
+            SeradPojisteneOsoby();
 
             // Pomocny List pro ulozeny odpovidajich Osob
             List<Osoba> odpovidajiciOsoby = new List<Osoba>();
