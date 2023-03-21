@@ -50,15 +50,30 @@
         /// <returns>Pole stringu s detaily pojistenych</returns>
         public string[] VypisPojistene(string jmeno, string prijmeni) 
         {
+            // Normalizuji predane parametry
+            jmeno = jmeno.Trim().ToLower();
+            prijmeni = prijmeni.Trim().ToLower();
+            
+            // Seradi existujici pojistene Osoby podle Prijmeni
+            pojisteneOsoby = pojisteneOsoby.OrderBy(osoba => osoba.Prijmeni).ToList();
+
             // Pomocny List pro ulozeny odpovidajich Osob
             List<Osoba> odpovidajiciOsoby = new List<Osoba>();
+
             foreach (Osoba pojistenaOsoba in pojisteneOsoby)
             {
+                // Osoby v Listu pojisteneOsoby jsou nyni serazeny podle Prijmeni. Pokud je prvni pismeno Prijemeni pojistene Osoby vetsi nez
+                // prvni pismeno prijmeni predane parametrem, jiz nemusim List prochazet a vyskocim z cyklu.
+                if (string.CompareOrdinal(pojistenaOsoba.Prijmeni.Substring(0, 1).ToLower(), prijmeni.Substring(0, 1)) > 0)
+                {
+                    break;
+                }
+
                 // Kontrola, zda odpovida prijmeni
-                if (pojistenaOsoba.Prijmeni.StartsWith(prijmeni))
+                if (pojistenaOsoba.Prijmeni.ToLower().StartsWith(prijmeni))
                 {
                     // Pokud opovida prijmeni, kontroluje krestni
-                    if(pojistenaOsoba.Jmeno.StartsWith(jmeno))
+                    if(pojistenaOsoba.Jmeno.ToLower().StartsWith(jmeno))
                     {
                         // Uklada odpovidajici Osobu do pomocneho Listu
                         odpovidajiciOsoby.Add(pojistenaOsoba);
