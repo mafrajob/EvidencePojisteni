@@ -10,6 +10,11 @@
         /// </summary>
         private List<Osoba> pojisteneOsoby = new List<Osoba>();
 
+        private DateTime posledniUprava = DateTime.MinValue;
+
+        private DateTime posledniSerazeni = DateTime.MinValue;
+
+
         /// <summary>
         /// Ulozi novou osobu do seznamu pojistenych
         /// </summary>
@@ -21,6 +26,7 @@
         {
             // Z metode predanych parametru vytvori novou instanci Osoby a ulozi ji do Listu
             pojisteneOsoby.Add(new Osoba(jmeno, prijmeni, vek, telefonniCislo));
+            posledniUprava = DateTime.Now;
         }
 
         /// <summary>
@@ -54,8 +60,12 @@
             jmeno = jmeno.Trim().ToLower();
             prijmeni = prijmeni.Trim().ToLower();
             
-            // Seradi existujici pojistene Osoby podle Prijmeni
-            pojisteneOsoby = pojisteneOsoby.OrderBy(osoba => osoba.Prijmeni).ToList();
+            // Seradi existujici pojistene Osoby podle Prijmeni, pokud neni jiste, ze uz jsou serazene
+            if(posledniSerazeni == DateTime.MinValue || posledniSerazeni < posledniUprava)
+            {
+                pojisteneOsoby = pojisteneOsoby.OrderBy(osoba => osoba.Prijmeni).ToList();
+                posledniSerazeni = DateTime.Now;
+            }
 
             // Pomocny List pro ulozeny odpovidajich Osob
             List<Osoba> odpovidajiciOsoby = new List<Osoba>();
@@ -64,19 +74,36 @@
             {
                 // Osoby v Listu pojisteneOsoby jsou nyni serazeny podle Prijmeni. Pokud je prvni pismeno Prijemeni pojistene Osoby vetsi nez
                 // prvni pismeno prijmeni predane parametrem, jiz nemusim List prochazet a vyskocim z cyklu.
-                if (string.CompareOrdinal(pojistenaOsoba.Prijmeni.Substring(0, 1).ToLower(), prijmeni.Substring(0, 1)) > 0)
+                int porovnaniPrvnihoPismena;
+
+                // Predane prijmeni by melo mit alespon 1 znak, pokud ma 0 znaku (prazdny string), v hledani pokracujeme (vubec podle prijmeni nechceme filtrovat)
+                if (prijmeni.Length > 0)
+                {
+                    porovnaniPrvnihoPismena = string.CompareOrdinal(pojistenaOsoba.Prijmeni.Substring(0, 1).ToLower(), prijmeni.Substring(0, 1));
+                }
+                else
+                {
+                    porovnaniPrvnihoPismena = 0;
+                }
+
+                // Hledane prijmeni uz se v pojisteneOsoby nemuze vyskytovat
+                if (porovnaniPrvnihoPismena > 0) 
                 {
                     break;
                 }
 
-                // Kontrola, zda odpovida prijmeni
-                if (pojistenaOsoba.Prijmeni.ToLower().StartsWith(prijmeni))
+                // Prvni pismeno hledaneho prijmeni odpovida zaznamu v pojisteneOsoby
+                if (porovnaniPrvnihoPismena == 0) 
                 {
-                    // Pokud opovida prijmeni, kontroluje krestni
-                    if(pojistenaOsoba.Jmeno.ToLower().StartsWith(jmeno))
+                    // Kontrola, zda odpovidaji dalsi pismena prijmeni
+                    if (pojistenaOsoba.Prijmeni.ToLower().StartsWith(prijmeni))
                     {
-                        // Uklada odpovidajici Osobu do pomocneho Listu
-                        odpovidajiciOsoby.Add(pojistenaOsoba);
+                        // Pokud opovida prijmeni, kontroluje krestni
+                        if (pojistenaOsoba.Jmeno.ToLower().StartsWith(jmeno))
+                        {
+                            // Uklada odpovidajici Osobu do pomocneho Listu
+                            odpovidajiciOsoby.Add(pojistenaOsoba);
+                        }
                     }
                 }
             }
