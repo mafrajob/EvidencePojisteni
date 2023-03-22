@@ -83,6 +83,14 @@
             jmeno = jmeno.Trim().ToLower();
             prijmeni = prijmeni.Trim().ToLower();
 
+            // Overi, zda neni predane prijmeni prazdny string a najde prvni znak
+            bool prazdnePrijmeni = prijmeni.Length == 0;
+            string prvniZnakPrijmeni = "";
+            if (!prazdnePrijmeni)
+            {
+                prvniZnakPrijmeni = prijmeni.Substring(0, 1);
+            }
+
             // Overi, zda jsou Osoby v pojisteneOsoby serazene dle Prijmeni
             SeradPojisteneOsoby();
 
@@ -95,10 +103,10 @@
                 // prvni pismeno prijmeni predane parametrem, jiz nemusim List prochazet a vyskocim z cyklu.
                 int porovnaniPrvnihoPismena;
 
-                // Predane prijmeni by melo mit alespon 1 znak, pokud ma 0 znaku (prazdny string), v hledani pokracujeme (vubec podle prijmeni nechceme filtrovat)
-                if (prijmeni.Length > 0)
+                // Overi, zda prvni pismeno hledaneho prijmeni odpovida zaznamu v pojisteneOsoby. Pokud je hledane prijemeni prazdny string, rikame ze odpovida
+                if (!prazdnePrijmeni)
                 {
-                    porovnaniPrvnihoPismena = string.CompareOrdinal(pojistenaOsoba.Prijmeni.Substring(0, 1).ToLower(), prijmeni.Substring(0, 1));
+                    porovnaniPrvnihoPismena = string.CompareOrdinal(pojistenaOsoba.Prijmeni.Substring(0, 1).ToLower(), prvniZnakPrijmeni);
                 }
                 else
                 {
@@ -111,11 +119,11 @@
                     break;
                 }
 
-                // Prvni pismeno hledaneho prijmeni odpovida zaznamu v pojisteneOsoby
+                // Prvni pismeno hledaneho prijmeni odpovida zaznamu v pojisteneOsoby, nebo je hledane prijmeni prazdny string
                 if (porovnaniPrvnihoPismena == 0) 
                 {
                     // Kontrola, zda odpovidaji dalsi pismena prijmeni
-                    if (pojistenaOsoba.Prijmeni.ToLower().StartsWith(prijmeni))
+                    if (prazdnePrijmeni || pojistenaOsoba.Prijmeni.ToLower().StartsWith(prijmeni))
                     {
                         // Pokud opovida prijmeni, kontroluje krestni
                         if (pojistenaOsoba.Jmeno.ToLower().StartsWith(jmeno))
