@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Policy;
+using System.Text;
 
 namespace EvidencePojisteni
 {
@@ -11,52 +12,6 @@ namespace EvidencePojisteni
 
             // Vytvori instanci Evidence k praci se pojistenymi
             Evidence evidence = new Evidence();
-
-            // Zavolani funkce vyzve uzivatele k zadani jmena
-            string ZjistiJmeno()
-            {
-                Console.WriteLine($"Zadejte jméno pojištěného (max {Osoba.maxDelkaJmena} znaků):");
-                return Console.ReadLine();
-            }
-
-            // Zavolani funkce vyzve uzivatele k zadani prijmeni
-            string ZjistiPrijmeni()
-            {
-                Console.WriteLine($"Zadejte příjmení (max {Osoba.maxDelkaJmena} znaků):");
-                return Console.ReadLine();
-            }
-
-            // Zavolani funkce vypise pojistene osoby (akce 2 nebo 3)
-            void VypisZaznamyPojistenych(string jmeno, string prijmeni) 
-            {
-                string[] detailyPojistenych;
-                
-                // Kontroluje, zda bude treba filtrovat podle jmena a/nebo prijmeni
-                if (string.IsNullOrEmpty(jmeno) && string.IsNullOrEmpty(prijmeni))
-                {
-                    // Ulozi do pole vsechny existujici zaznamy
-                    detailyPojistenych = evidence.VypisPojistene();
-                }
-                else
-                {
-                    // Ulozi do pole zaznamy odpovidajici predanym parametrum
-                    detailyPojistenych = evidence.VypisPojistene(jmeno, prijmeni);
-                }
-
-                int pocetZaznamu = detailyPojistenych.Length;
-                if (pocetZaznamu > 0)
-                {
-                    // Cyklus vypise pojistene, pokud byly nalezeny nejake zaznamy
-                    foreach (string detailPojisteneho in detailyPojistenych)
-                    {
-                        Console.WriteLine(detailPojisteneho);
-                    }
-                }
-
-                // Shrnuti pro uzivalete aplikace
-                Console.WriteLine($"\nNalezeno {pocetZaznamu} záznam(ů). Pokračujte libovolnou klávesou...");
-                Console.ReadKey();
-            }
 
             // Cyklus a promenna ridici beh programu
             bool konecProgramu = false;
@@ -72,18 +27,8 @@ namespace EvidencePojisteni
                 // Cyklus na vyber akce v rozmezi 1 - 4
                 do
                 {
-                    Console.Clear();
-                    // Vypise zahlavy programu s akcemi uzivatele
-                    string podtrzeni = new string('-', 20);
-                    string[] nazvyAkci = new string[] { "1 - Přidat nového pojištěného", "2 - Vypsat všechny pojištěné", "3 - Vyhledat pojištěného", "4 - Konec" };
-                    Console.WriteLine($"{podtrzeni}\nEvidence pojištěných\n{podtrzeni}\n");
-                    Console.WriteLine("Vyberte si akci:");
-                    foreach (string nazevAkce in nazvyAkci)
-                    {
-                        Console.WriteLine(nazevAkce);
-                    }
-                    Console.WriteLine("Vybraná akce:");
-                // Kontroluje uzivatelsky vstup na datovy typ a existenci cisla akce
+                    VypisZahlavi();
+                    // Kontroluje uzivatelsky vstup na datovy typ a existenci cisla akce
                 } while (!int.TryParse(Console.ReadKey().KeyChar.ToString(), out akce) || akce < 1 || akce > 4);
                 Console.Write("\n\n");
 
@@ -112,14 +57,14 @@ namespace EvidencePojisteni
 
                     // Vypsat vsechny pojistene
                     case 2:
-                        VypisZaznamyPojistenych(jmeno, prijmeni);
+                        VypisZaznamyPojistenych(evidence, jmeno, prijmeni);
                         break;
 
                     // Vyhledat pojisteneho
                     case 3:
                         jmeno = ZjistiJmeno();
                         prijmeni = ZjistiPrijmeni();
-                        VypisZaznamyPojistenych(jmeno, prijmeni);
+                        VypisZaznamyPojistenych(evidence, jmeno, prijmeni);
                         break;
 
                     // Konec
@@ -130,6 +75,79 @@ namespace EvidencePojisteni
                         break;
                 }
             }
-        }   
+        }
+
+        /// <summary>
+        /// Vyzve uzivatele k zadani jmena
+        /// </summary>
+        /// <returns>Vstup uživatele</returns>
+        private static string ZjistiJmeno()
+        {
+            Console.WriteLine($"Zadejte jméno pojištěného (max {Osoba.maxDelkaJmena} znaků):");
+            return Console.ReadLine();
+        }
+        /// <summary>
+        /// Vyzve uzivatele k zadani prijmeni
+        /// </summary>
+        /// <returns>Vstup uživatele</</returns>
+        private static string ZjistiPrijmeni()
+        {
+            Console.WriteLine($"Zadejte příjmení (max {Osoba.maxDelkaJmena} znaků):");
+            return Console.ReadLine();
+        }
+
+        /// <summary>
+        /// Vypise pojistene osoby (akce 2 nebo 3) do konzole
+        /// </summary>
+        /// <param name="evidence">Evidence ve které metoda hleda</param>
+        /// <param name="jmeno">Krestni jmeno pojisteneho</param>
+        /// <param name="prijmeni">Prijmeni pojisteneho</param>
+        private static void VypisZaznamyPojistenych(Evidence evidence, string jmeno, string prijmeni)
+        {
+            string[] detailyPojistenych;
+
+            // Kontroluje, zda bude treba filtrovat podle jmena a/nebo prijmeni
+            if (string.IsNullOrEmpty(jmeno) && string.IsNullOrEmpty(prijmeni))
+            {
+                // Ulozi do pole vsechny existujici zaznamy
+                detailyPojistenych = evidence.VypisPojistene();
+            }
+            else
+            {
+                // Ulozi do pole zaznamy odpovidajici predanym parametrum
+                detailyPojistenych = evidence.VypisPojistene(jmeno, prijmeni);
+            }
+
+            int pocetZaznamu = detailyPojistenych.Length;
+            if (pocetZaznamu > 0)
+            {
+                // Cyklus vypise pojistene, pokud byly nalezeny nejake zaznamy
+                foreach (string detailPojisteneho in detailyPojistenych)
+                {
+                    Console.WriteLine(detailPojisteneho);
+                }
+            }
+
+            // Shrnuti pro uzivalete aplikace
+            Console.WriteLine($"\nNalezeno {pocetZaznamu} záznam(ů). Pokračujte libovolnou klávesou...");
+            Console.ReadKey();
+        }
+
+        /// <summary>
+        /// Vypise zahlavy programu s akcemi uzivatele do konzole
+        /// </summary>
+        private static void VypisZahlavi()
+        {
+            Console.Clear();
+            string podtrzeni = new string('-', 20);
+            string[] nazvyAkci = new string[] { "1 - Přidat nového pojištěného", "2 - Vypsat všechny pojištěné", "3 - Vyhledat pojištěného", "4 - Konec" };
+            Console.WriteLine($"{podtrzeni}\nEvidence pojištěných\n{podtrzeni}\n");
+            Console.WriteLine("Vyberte si akci:");
+            foreach (string nazevAkce in nazvyAkci)
+            {
+                Console.WriteLine(nazevAkce);
+            }
+            Console.WriteLine("Vybraná akce:");
+        }
     }
 }
